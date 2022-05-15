@@ -28,7 +28,7 @@ public class TestAcccuweather extends AutomationMethods
 	@Test
 	public void testAccuWeather() 
 	{
-		startTest("test");
+		startTest("Test AccuWeather with openweatherMap");
 		OpenWeatherMap openWeatherMap=new OpenWeatherMap(driver);
 		String temperature=openWeatherMap.getTemperatureByCityName(prop.getProperty("cityInOpenWeather"));
 		accuWeather.compareTempWithOpenWeather(prop.getProperty("cityInAccuWeather"),temperature);
