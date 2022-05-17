@@ -190,8 +190,25 @@ public class AutomationMethods {
 		}
 	}
 
+	protected void doubleClick(WebElement element,String elementName) 
+	{
+		try {			
+			ewait(element);
+			Actions action=new Actions(driver);
+			action.doubleClick(element).build().perform();
+			getTest().log(LogStatus.INFO, "double clicked "+elementName+" successfully");
+		} catch (Exception e) {
+			getTest().log(LogStatus.WARNING, "Exception while double clicking "+elementName+" is due to <br/>"+e+ getTest().addScreenCapture(tearDown(driver)));
+			new Assertion().fail();
+		}
+	}
+
 	protected void ewait(String xpath){
 		new WebDriverWait(driver,5).until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+	}
+
+	protected void ewait(WebElement element){
+		new WebDriverWait(driver,5).until(ExpectedConditions.visibilityOf(element));
 	}
 
 	protected WebElement DX(String XpathKey)	{
@@ -216,6 +233,36 @@ public class AutomationMethods {
 		}
 	}
 	
+	protected void verifyIsDisplayed(WebElement element,String elementName) {
+		try {
+			ewait(element);
+			if(element.isDisplayed()){
+				getTest().log(LogStatus.PASS, "Displayed "+elementName+" Successfully");
+			}
+			else{
+				getTest().log(LogStatus.FAIL, "Failed to Display <br/> "+elementName+ getTest().addScreenCapture(tearDown(driver)));
+				new Assertion().fail();
+			}
+		} catch (Exception e) {
+			getTest().log(LogStatus.FAIL, "Exception while verifying to Display <br/> "+elementName+e+ getTest().addScreenCapture(tearDown(driver)));
+			new Assertion().fail();
+		}
+	}
+	
+	protected String getText(WebElement element,String elementName){
+		try {
+			ewait(element);
+			String text=element.getText();
+			getTest().log(LogStatus.INFO, "should read text on "+elementName, "text on "+elementName+" is "+text);
+			return text;
+		} catch (Exception e) {
+			System.out.println("Exception while reading text on "+elementName+" is due to <br/>"+e);
+			getTest().log(LogStatus.WARNING, "Exception while reading text on "+elementName+" is due to <br/>"+e+ getTest().addScreenCapture(tearDown(driver))); 
+			new Assertion().fail();
+			return null;
+		}
+	}
+
 	protected String getText(String xpath,String elementName){
 		try {
 			ewait(xpath);
@@ -239,6 +286,25 @@ public class AutomationMethods {
 			}
 			else{
 				getTest().log(LogStatus.FAIL, "Should display text '"+text+"'", "text '"+text+"' is not displayed but showed ' <br/> "+DX(xpath).getText()+"'"+ getTest().addScreenCapture(tearDown(driver)));
+				new Assertion().fail();
+				return false;
+			}
+		} catch (Exception e) {
+			getTest().log(LogStatus.FAIL, "Failed to verify text:<br/>"+text +"<br/>"+e+ getTest().addScreenCapture(tearDown(driver)));
+			new Assertion().fail();
+			return false;
+		}
+	}
+
+	protected boolean verifyTextDisplayed(WebElement element,String text){
+		try	{
+			ewait(element);
+			if(element.getText().contains(text)){
+				getTest().log(LogStatus.PASS, "Should display text '"+text+"'", "Displayed text '"+text+"' successfully");
+				return true;
+			}
+			else{
+				getTest().log(LogStatus.FAIL, "Should display text '"+text+"'", "text '"+text+"' is not displayed but showed ' <br/> "+element.getText()+"'"+ getTest().addScreenCapture(tearDown(driver)));
 				new Assertion().fail();
 				return false;
 			}
@@ -324,6 +390,21 @@ public class AutomationMethods {
 			DX(xpath).clear();
 			DX(xpath).sendKeys(text);
 			((JavascriptExecutor)driver).executeScript("arguments[0].setAttribute('style','background:white');", DX(xpath));
+			getTest().log(LogStatus.INFO, "Cleared and entered text "+text+" in "+elementName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			getTest().log(LogStatus.FAIL, "Exception while clearing and entering text "+text+" in "+elementName+" is due to <br/>"+e+ getTest().addScreenCapture(tearDown(driver)));
+			new Assertion().fail();
+		}
+	}
+
+	protected void clearNEnterText(WebElement element,String text,String elementName){
+		try {
+			ewait(element);
+			((JavascriptExecutor)driver).executeScript("arguments[0].setAttribute('style','background:yellow');", element);
+			element.clear();
+			element.sendKeys(text);
+			((JavascriptExecutor)driver).executeScript("arguments[0].setAttribute('style','background:white');", element);
 			getTest().log(LogStatus.INFO, "Cleared and entered text "+text+" in "+elementName);
 		} catch (Exception e) {
 			e.printStackTrace();

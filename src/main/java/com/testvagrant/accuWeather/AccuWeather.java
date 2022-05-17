@@ -1,6 +1,11 @@
 package com.testvagrant.accuWeather;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.CacheLookup;
+import org.openqa.selenium.support.FindAll;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.FindBys;
 import org.testng.asserts.Assertion;
 
 import com.testvagrant.reusableComponents.AutomationMethods;
@@ -13,41 +18,50 @@ public class AccuWeather extends AutomationMethods
 		this.driver=driver;
 	}
 
-	protected String searchField				="//input[@name='query']";
-	public void verifysearchFieldIsDisplayed() {verifyIsDisplayed(searchField, "searchField");}
+	@CacheLookup
+	@FindAll({
+		@FindBy(name="query")
+	})
+	WebElement searchField;
 	
-	protected String searchIcon					="//*[local-name()='svg' and @data-qa='searchIcon']/*[local-name()='path']";
+	@FindBys({
+		@FindBy(className="header-loc")
+	})	
+	WebElement resultHeader;
+	
+	@FindBy(xpath="//*[local-name()='svg' and @data-qa='searchIcon']/*[local-name()='path']")
+	WebElement searchIcon;
+	
+	@FindBy(xpath="//h2[contains(text(),'Current Weather')]/..//div[@class='temp']")
+	WebElement cityTemperatureField;
+	
+	public void verifysearchFieldIsDisplayed() {
+		verifyIsDisplayed(searchField, "searchField");
+	}
+	
+	public void compareTemperatureWithOpenWeather(String cityName,String openWeatherTemperature) {
 
-	protected String resultHeader				="//h1[@class='header-loc']";
-	
-	protected String temperature				="//h2[contains(text(),'Current Weather')]/..//div[@class='temp']";
-	
-	public void compareTempWithOpenWeather(String cityName,String openWeatherTemperature) {
-
-		int expectedTemperature=parseStringToDoubleNroundToInt(openWeatherTemperature,"open Weather Temperature");
-		
 		clearNEnterText(searchField, cityName, "search Field");
 		doubleClick(searchIcon, "search Icon");
 		verifyTextDisplayed(resultHeader,cityName);
+		String accuWeatherTempetarure=getText(cityTemperatureField, "city Temperature Field");
+		accuWeatherTempetarure=accuWeatherTempetarure.substring(0, accuWeatherTempetarure.length()-2);
+		int accuWeatherTempetarureAsInteger=parseStringToDoubleNroundToInt(accuWeatherTempetarure,"accuweather temperature");
+		int openWeatherTemperatureAsInteger=parseStringToDoubleNroundToInt(openWeatherTemperature,"open Weather Temperature");
 		
-		String temperatureInAccuWeather=getText(temperature, "Temperature");
-		temperatureInAccuWeather=temperatureInAccuWeather.substring(0, temperatureInAccuWeather.length()-2);
-		
-		int actualTemperature=parseStringToDoubleNroundToInt(temperatureInAccuWeather,"accuweather temperature");
 		try {
-			if(expectedTemperature-2<=actualTemperature && actualTemperature<=expectedTemperature+2) {
-				logPass("Temperature in Accuweather is in expected range of ["+(expectedTemperature-2)+","+(expectedTemperature+2)
-						+"], temperature in Accuweather is "+actualTemperature);
+			if(openWeatherTemperatureAsInteger-2<=accuWeatherTempetarureAsInteger && accuWeatherTempetarureAsInteger<=openWeatherTemperatureAsInteger+2) {
+				logPass("Temperature in Accuweather is in expected range of ["+(openWeatherTemperatureAsInteger-2)+","+(openWeatherTemperatureAsInteger+2)
+						+"], temperature in Accuweather is "+accuWeatherTempetarureAsInteger);
 			}
 			else {
-				logFail("Temperature in Accuweather is not in expected range of ["+(expectedTemperature-2)+","+(expectedTemperature+2)
-						+"], temperature in Accuweather is "+actualTemperature);
-					throw new TemperatureMismatchException("Temperature mismatch betwwen accuweather and openweatherMap");
+				logFail("Temperature in Accuweather is not in expected range of ["+(openWeatherTemperatureAsInteger-2)+","+(openWeatherTemperatureAsInteger+2)
+						+"], temperature in Accuweather is "+accuWeatherTempetarureAsInteger);
+					throw new TemperatureMismatchException("Temperature mismatch between accuweather and openweatherMap");
 			}
 		} catch (TemperatureMismatchException e) {
 			logFail("Temperature mismatch between accuweather and openweatherMap");
 			new Assertion().fail();
 		}
 	}
-	
 }

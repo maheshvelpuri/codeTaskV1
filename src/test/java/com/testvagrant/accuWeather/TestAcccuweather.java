@@ -1,5 +1,6 @@
 package com.testvagrant.accuWeather;
 
+import org.openqa.selenium.support.PageFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -12,7 +13,7 @@ public class TestAcccuweather extends AutomationMethods
 {
 
 	AccuWeather accuWeather;
-	
+	OpenWeatherMap openWeatherMap;
 	
 	@BeforeClass
 	public void beforetest() 
@@ -20,18 +21,19 @@ public class TestAcccuweather extends AutomationMethods
 		initialise();
 		startTest("Navigate to accuweather");
 		openBrowser(prop.getProperty("url"), prop.getProperty("browser"));
-		accuWeather=new AccuWeather(driver);
+		accuWeather=PageFactory.initElements(driver, AccuWeather.class);
 		accuWeather.verifysearchFieldIsDisplayed();
 		endTest();
+		
+		openWeatherMap=new OpenWeatherMap(driver);
 	}
 	
 	@Test
-	public void testAccuWeather() 
+	public void testTemperature() 
 	{
-		startTest("Test AccuWeather with openweatherMap");
-		OpenWeatherMap openWeatherMap=new OpenWeatherMap(driver);
+		startTest("Test temperature in AccuWeather with openweatherMap");
 		String temperature=openWeatherMap.getTemperatureByCityName(prop.getProperty("cityInOpenWeather"));
-		accuWeather.compareTempWithOpenWeather(prop.getProperty("cityInAccuWeather"),temperature);
+		accuWeather.compareTemperatureWithOpenWeather(prop.getProperty("cityInAccuWeather"),temperature);
 	}
 	
 	@AfterMethod
