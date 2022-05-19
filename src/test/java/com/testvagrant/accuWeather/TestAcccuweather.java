@@ -1,5 +1,8 @@
 package com.testvagrant.accuWeather;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.openqa.selenium.support.PageFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -7,10 +10,16 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.Assertion;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testvagrant.accuWeatherPages.Home;
 import com.testvagrant.openWeatherMap.OpenWeatherMap;
+import com.testvagrant.openWeatherPOJO.WeatherByCityName;
 import com.testvagrant.reusableComponents.AutomationMethods;
 import com.testvagrant.reusableComponents.TemperatureMismatchException;
+
+import io.restassured.response.Response;
 
 public class TestAcccuweather extends AutomationMethods
 {
@@ -32,10 +41,21 @@ public class TestAcccuweather extends AutomationMethods
 	}
 	
 	@Test
-	public void testTemperature() 
+	public void testTemperature() throws JsonMappingException, JsonProcessingException 
 	{
 		startTest("Test temperature in AccuWeather with openweatherMap");
-		String openWeatherTemperature=openWeatherMap.getTemperatureByCityName(prop.getProperty("cityInOpenWeather"));
+		
+		Map<String,String> qParameters=new HashMap<String, String>();
+		qParameters.put("q", prop.getProperty("cityInOpenWeather"));
+		qParameters.put("appid", prop.getProperty("appid"));
+		qParameters.put("units", prop.getProperty("units"));
+		Response response =	get("", qParameters);
+		verifyStatusCode(response, 200);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		WeatherByCityName weatherByCityName =objectMapper.readValue(response.asString(), WeatherByCityName.class);
+		String openWeatherTemperature=""+weatherByCityName.getMain().getTemp();
+		
 		String accuWeatherTempetarure=home.enterCityINSearchField(prop.getProperty("cityInAccuWeather"))
 											.clickSearchIcon()
 											.verifyResultHeaderIsDisplayed(prop.getProperty("cityInAccuWeather"))
